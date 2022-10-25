@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 import dagger.hilt.android.AndroidEntryPoint;
 import ru.romazanov.testapp1.R;
+import ru.romazanov.testapp1.api.model.AuthResponse;
 import ru.romazanov.testapp1.api.model.UserResponse;
 import ru.romazanov.testapp1.databinding.FragmentStartBinding;
 
@@ -26,14 +27,16 @@ public class StartFragment extends Fragment {
 
     private StartViewModel mViewModel;
     private FragmentStartBinding binding;
-    NavController navController;
-    private Integer pos;
+    private NavController navController;
+    private Integer spinnerPosition;
+    private final String emptyAnswer = "Пустой ответ!";
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         binding = FragmentStartBinding.inflate(inflater, container, false);
         mViewModel = new ViewModelProvider(this).get(StartViewModel.class);
+        mViewModel.getUserList();
         return binding.getRoot();
     }
 
@@ -45,48 +48,46 @@ public class StartFragment extends Fragment {
         binding.spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                pos = position;
+                spinnerPosition = position;
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                pos = 0;
+                spinnerPosition = 0;
             }
         });
 
         binding.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UserResponse id = Objects.requireNonNull(mViewModel.getDataList().getValue()).get(pos);
-                mViewModel.auth(id.getUid(), String.valueOf(binding.password.getText()));
+                UserResponse id = Objects.requireNonNull(mViewModel.getDataList().getValue()).get(spinnerPosition);
+                mViewModel.getAuthCode(id.getUid(), String.valueOf(binding.password.getText()));
             }
         });
-
 
         mViewModel.getDataList().observe(getViewLifecycleOwner(), new Observer<ArrayList<UserResponse>>() {
             @Override
             public void onChanged(ArrayList<UserResponse> userResponses) {
-                binding.spinner.setAdapter(new ArrayAdapter<UserResponse>(getContext(),
-                        android.R.layout.simple_list_item_1, userResponses));
+                if (userResponses == null) {
+                    Toast.makeText(getContext(), emptyAnswer, Toast.LENGTH_SHORT).show();
+                } else {
+                    binding.spinner.setAdapter(new ArrayAdapter<UserResponse>(getContext(),
+                            android.R.layout.simple_list_item_1, userResponses));
+                }
             }
         });
 
-        mViewModel.getAuth().observe(getViewLifecycleOwner(), new Observer<Integer>() {
+        mViewModel.getAuthResponse().observe(getViewLifecycleOwner(), new Observer<AuthResponse>() {
             @Override
-            public void onChanged(Integer integer) {
-                Bundle bundle = new Bundle();
-                bundle.putInt("key", integer);
-                navController.navigate(R.id.action_startFragment_to_secondFragment, bundle);
-            }
-        });
-
-        mViewModel.error().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
+            public void onChanged(AuthResponse integer) {
+                if (integer == null) {
+                    Toast.makeText(getContext(), emptyAnswer, Toast.LENGTH_SHORT).show();
+                } else {
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("key", integer.getCode());
+                    navController.navigate(R.id.action_startFragment_to_secondFragment, bundle);
+                }
             }
         });
     }
-
-
 }

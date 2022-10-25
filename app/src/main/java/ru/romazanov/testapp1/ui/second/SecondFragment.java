@@ -21,7 +21,7 @@ public class SecondFragment extends Fragment {
     private SecondViewModel mViewModel;
     private FragmentSecondBinding binding;
     private Integer authCode;
-    private MyAdapter adapter;
+    private AuthDataAdapter adapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -37,7 +37,7 @@ public class SecondFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         Toast.makeText(getContext(), String.valueOf(authCode), Toast.LENGTH_SHORT).show();
 
-        adapter = new MyAdapter(getContext());
+        adapter = new AuthDataAdapter();
 
         binding.recycler.setAdapter(adapter);
 

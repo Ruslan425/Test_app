@@ -4,9 +4,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class AuthResponse {
     @SerializedName("Code")
-    int code;
+    Integer code;
 
-    public int getCode() {
+    public Integer getCode() {
         return code;
     }
 
